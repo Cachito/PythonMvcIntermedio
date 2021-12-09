@@ -4,7 +4,7 @@ Módulo view.py
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.messagebox as msg
-from clases import Noticia
+from modulos.clases import Noticia
 
 class View(ttk.Frame):
     """
