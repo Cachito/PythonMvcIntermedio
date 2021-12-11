@@ -33,13 +33,38 @@ class Controller:
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
 
-    def create_table(self):
+    def create_tables(self):
         """
-        crea la tabla noticias
+        crea las tablas
+        - noticias
+        - medios
+        - secciones
         """
         try:
-            self.model.create_table()
-            self.view.salta_violeta("Carro-Maier", "Tabla `Noticias` creada con éxito")
+            self.model.create_tables()
+            self.view.salta_violeta("Carro-Maier", "Tablas `Noticias`, `Medios` y `Secciones` creadas con éxito.")
+
+        except Exception as e:
+            self.view.salta_violeta("Error Carro-Maier", str(e))
+
+    def get_medios(self):
+        """
+        devuelve una lista con los medios en
+        base de datos
+        """
+        try:
+            return self.model.get_medios()
+
+        except Exception as e:
+            self.view.salta_violeta("Error Carro-Maier", str(e))
+
+    def get_secciones(self, id_medio):
+        """
+        devuelve una lista con las secciones en
+        base de datos según el id_medio indicado
+        """
+        try:
+            return self.model.get_secciones(id_medio)
 
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
