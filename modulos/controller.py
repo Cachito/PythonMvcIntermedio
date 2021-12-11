@@ -2,6 +2,7 @@
 Módulo controller.py
 """
 import datetime
+import traceback
 
 class Controller:
     """
@@ -12,14 +13,13 @@ class Controller:
         self.model = model
         self.view = view
 
-    def refresh(self):
+    def get_noticias(self):
         """
-        actualiza el connido del treeview
+        devuelve todas las noticias
         """
         try:
-            self.view.clean_tree()
-            resultado = self.model.get_all()
-            self.view.load_tree(resultado)
+            return self.model.get_noticias()
+
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", f"error al intentar obtener noticias: {str(e)}")
 
@@ -33,13 +33,38 @@ class Controller:
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
 
-    def create_table(self):
+    def create_tables(self):
         """
-        crea la tabla noticias
+        crea las tablas
+        - noticias
+        - medios
+        - secciones
         """
         try:
-            self.model.create_table()
-            self.view.salta_violeta("Carro-Maier", "Tabla `Noticias` creada con éxito")
+            self.model.create_tables()
+            self.view.salta_violeta("Carro-Maier", "Tablas `Noticias`, `Medios` y `Secciones` creadas con éxito.")
+
+        except Exception as e:
+            self.view.salta_violeta("Error Carro-Maier", str(e))
+
+    def get_medios(self):
+        """
+        devuelve una lista con los medios en
+        base de datos
+        """
+        try:
+            return self.model.get_medios()
+
+        except Exception as e:
+            self.view.salta_violeta("Error Carro-Maier", str(e))
+
+    def get_secciones(self, id_medio):
+        """
+        devuelve una lista con las secciones en
+        base de datos según el id_medio indicado
+        """
+        try:
+            return self.model.get_secciones(id_medio)
 
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
@@ -55,11 +80,12 @@ class Controller:
         try:
             if self.valida(noticia):
                 self.model.save_data(noticia)
-                self.view.salta_violeta("Carro-Maier", f"registro {'insertado' if noticia.id == '0' else f'{noticia.id} actualizado'} con éxito")
-                self.refresh()
+                self.view.salta_violeta("Carro-Maier", f"registro {'insertado' if noticia.id == 0 else f'{noticia.id} actualizado'} con éxito")
+                self.view.refresh()
                 self.view.clear_data()
 
         except Exception as e:
+            traceback.print_exc()
             self.view.salta_violeta("Error Carro-Maier", str(e))
 
     def delete_data(self, search_id):
@@ -68,7 +94,7 @@ class Controller:
         comprueba el valor
         invoca eliminación
         actualiza la vista
-        limpa lso campos
+        limpa los campos
         """
         if not search_id:
             self.view.salta_violeta("Carro-Maier", "Debe seleccionar algo")
@@ -77,13 +103,13 @@ class Controller:
         try:
             self.model.delete_data(search_id)
             self.view.salta_violeta("Carro-Maier", f"Registro id:{search_id} eliminado")
-            self.refresh()
+            self.view.refresh()
             self.view.clear_data()
 
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
 
-    def get_datos(self, search_id):
+    def get_noticia(self, search_id):
         """
         Args:
             search_id (entero): is de la noticia a buscar
@@ -95,7 +121,7 @@ class Controller:
             return
 
         try:
-            return self.model.get_datos(search_id)
+            return self.model.get_noticia(search_id)
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
 
@@ -116,10 +142,10 @@ class Controller:
             except ValueError:
                 msj_error = " el formato de la fecha debe ser YYYY-MM-dd"
 
-        if not noticia.medio:
+        if not noticia.id_medio or noticia.id_medio == 0:
             msj_error = f"{msj_error} medio "
 
-        if not noticia.seccion:
+        if not noticia.id_seccion  or noticia.id_seccion == 0:
             msj_error = f"{msj_error} seccion "
 
         if not noticia.titulo:
