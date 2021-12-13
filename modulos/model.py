@@ -9,6 +9,47 @@ class Model:
     Clase Model
     Obtiene y guarda en base de datos.
     """
+    def get_noticia(self, search_id):
+        """
+        devuelve un registro según search_id
+        si lo encuentra
+        """
+        try:
+            db_cacho = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                passwd="",
+                database="carro_maier"
+            )
+
+            csr_cacho = db_cacho.cursor()
+            sql_get = """
+                SELECT
+                    N.Id
+                    , DATE_FORMAT(N.Fecha, '%d/%m/%Y') AS Fecha
+                    , CONCAT(M.Descripcion, ' - (', M.Id, ')') AS Medio
+                    , CONCAT(S.Descripcion, ' - (', S.Id, ')') AS Seccion
+                    , N.Titulo
+                    , N.Cuerpo
+                FROM Noticias N
+                JOIN Medios M ON
+                    N.IdMedio = M.Id
+                JOIN Secciones S ON
+                    N.IdSeccion = S.Id
+                WHERE N.Id = %s
+                """
+
+            csr_cacho.execute(sql_get, (search_id, ))
+            resultado = csr_cacho.fetchone()
+
+            return resultado
+
+        except Exception as e:
+            raise Exception(f"error al leer registros en tabla Noticias: {str(e)}") from e
+
+        finally:
+            db_cacho.close()
+
     def get_noticias(self):
         """
         devuelve todos los registros
@@ -27,8 +68,8 @@ class Model:
 
             sql_get = """
                 SELECT
-                    N.Id
-                    , N.Fecha
+                    CAST(N.Id AS CHAR) AS Id
+                    , DATE_FORMAT(N.Fecha, '%d/%m/%Y') AS Fecha
                     , M.Descripcion AS Medio
                     , S.Descripcion AS Seccion
                     , N.Titulo
@@ -134,7 +175,7 @@ class Model:
 
         return r_list
 
-    def create_data(self):
+    def create_db(self):
         """
         crea la base de datos carro_maier
         si existe, la elimina
@@ -293,7 +334,7 @@ class Model:
 
                 csr_cacho.execute(sql_insert, datos)
             else:
-                sql_update = f"""
+                sql_update = """
                     UPDATE Noticias SET
                         Fecha = %s,
                         Medio = %s,
@@ -314,43 +355,6 @@ class Model:
         finally:
             db_cacho.close()
 
-    def get_noticia(self, search_id):
-        """
-        devuelve un registro según search_id
-        si lo encuentra
-        """
-        try:
-            db_cacho = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                passwd="",
-                database="carro_maier"
-            )
-
-            csr_cacho = db_cacho.cursor()
-            sql_get = f"""
-                SELECT
-                    Id
-                    , Fecha
-                    , IdMedio
-                    , IdSeccion
-                    , Titulo
-                    , Cuerpo
-                FROM Noticias
-                WHERE Id = %s
-                """
-
-            csr_cacho.execute(sql_get, (search_id, ))
-            resultado = csr_cacho.fetchone()
-
-            return resultado
-
-        except Exception as e:
-            raise Exception(f"error al leer registros en tabla Noticias: {str(e)}")
-
-        finally:
-            db_cacho.close()
-
     def delete_data(self, search_id):
         """
         elimina un registro según search_id
@@ -365,7 +369,7 @@ class Model:
             )
 
             csr_cacho = db_cacho.cursor()
-            sql_delete = f"""
+            sql_delete = """
                 DELETE FROM Noticias
                 WHERE Id = %s
                 """

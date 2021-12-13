@@ -13,6 +13,24 @@ class Controller:
         self.model = model
         self.view = view
 
+    def get_noticia(self, search_id):
+        """
+        Args:
+            search_id (entero): is de la noticia a buscar
+        Returns:
+            Noticia: La noticia completa según el search_id recibido
+        """
+        if not search_id:
+            self.view.salta_violeta("Carro-Maier", "Debe seleccionar algo")
+            return
+
+        try:
+            noticia = self.model.get_noticia(search_id)
+            self.view.set_noticia(noticia)
+
+        except Exception as e:
+            self.view.salta_violeta("Error Carro-Maier", str(e))
+            
     def get_noticias(self):
         """
         devuelve todas las noticias
@@ -23,12 +41,12 @@ class Controller:
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", f"error al intentar obtener noticias: {str(e)}")
 
-    def create_data(self):
+    def create_db(self):
         """
         crea la base de datos carro_maier
         """
         try:
-            self.model.create_data()
+            self.model.create_db()
             self.view.salta_violeta("Carro-Maier", "Base de datos carro_meier creada con éxito")
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
@@ -106,22 +124,6 @@ class Controller:
             self.view.refresh()
             self.view.clear_data()
 
-        except Exception as e:
-            self.view.salta_violeta("Error Carro-Maier", str(e))
-
-    def get_noticia(self, search_id):
-        """
-        Args:
-            search_id (entero): is de la noticia a buscar
-        Returns:
-            Noticia: La noticia completa según el search_id recibido
-        """
-        if not search_id:
-            self.view.salta_violeta("Carro-Maier", "Debe seleccionar algo")
-            return
-
-        try:
-            return self.model.get_noticia(search_id)
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
 
