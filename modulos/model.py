@@ -337,14 +337,14 @@ class Model:
                 sql_update = """
                     UPDATE Noticias SET
                         Fecha = %s,
-                        Medio = %s,
-                        Seccion = %s,
+                        IdMedio = %s,
+                        IdSeccion = %s,
                         Titulo = %s,
-                        Cuerpo = %s'
+                        Cuerpo = %s
                     WHERE Id = %s
                     """
 
-                csr_cacho.execute(sql_update, (noticia.fecha, noticia.id_medio, noticia.id_seccion, titulo, cuerpo))
+                csr_cacho.execute(sql_update, (noticia.fecha, noticia.id_medio, noticia.id_seccion, titulo, cuerpo, noticia.id))
 
             db_cacho.commit()
 

@@ -17,6 +17,9 @@ from modulos.model import Model
 from modulos.controller import Controller
 import modulos.constant as constants
 class Ui_main_view(object):
+    """
+    main y vista principal
+    """
     def setupUi(self, main_view):
         self.nota_id = 0
 
@@ -33,6 +36,7 @@ class Ui_main_view(object):
         icon_form.addPixmap(QtGui.QPixmap("./imagenes/noticias.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         main_view.setWindowIcon(icon_form)
         main_view.setToolTip("")
+        # widgwt central
         self.centralwidget = QtWidgets.QWidget(main_view)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -102,6 +106,7 @@ class Ui_main_view(object):
         self.btn_eliminar.setIconSize(QtCore.QSize(32, 32))
         self.btn_eliminar.setAutoRaise(False)
         self.btn_eliminar.setObjectName("btn_eliminar")
+        self.btn_eliminar.clicked.connect(self.delete_data)
         # botón refresh
         self.btn_refresh = QtWidgets.QToolButton(self.tool_frame)
         self.btn_refresh.setGeometry(QtCore.QRect(310, 10, 51, 41))
@@ -112,6 +117,7 @@ class Ui_main_view(object):
         self.btn_refresh.setIconSize(QtCore.QSize(32, 32))
         self.btn_refresh.setAutoRaise(False)
         self.btn_refresh.setObjectName("btn_refresh")
+        self.btn_refresh.clicked.connect(self.refresh)
         # id a buscar
         self.txt_id_search = QtWidgets.QLineEdit(self.tool_frame)
         self.txt_id_search.setGeometry(QtCore.QRect(370, 20, 41, 21))
@@ -129,6 +135,7 @@ class Ui_main_view(object):
         self.btn_search.setIconSize(QtCore.QSize(32, 32))
         self.btn_search.setAutoRaise(False)
         self.btn_search.setObjectName("btn_search")
+        self.btn_search.clicked.connect(self.buscar)
         #frame datos
         self.data_frame = QtWidgets.QFrame(self.centralwidget)
         self.data_frame.setGeometry(QtCore.QRect(10, 60, 481, 351))
@@ -203,6 +210,8 @@ class Ui_main_view(object):
         self.tw_noticias.setHorizontalHeaderItem(5, item)
         self.tw_noticias.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.tw_noticias.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.tw_noticias.setColumnWidth(constants.ID_NOTICIA, 10)
+        self.tw_noticias.setColumnWidth(constants.FECHA, 75)
         self.tw_noticias.cellClicked.connect(self.on_click_tw)
         # widget central
         main_view.setCentralWidget(self.centralwidget)
@@ -274,13 +283,20 @@ class Ui_main_view(object):
         sys.exit()
 
     def on_click_tw(self, index):
+        """
+        evento click en una row
+        de la grilla (tablewidget)
+        """
         noticia_id = self.tw_noticias.item(index, 0).text()
         self.controller.get_noticia(noticia_id)
 
     def set_noticia(self, noticia):
+        """
+        carga una noticia en pantalla
+        """
         self.clear_data()
 
-        self.id = noticia[constants.ID_NOTICIA]
+        self.nota_id = noticia[constants.ID_NOTICIA]
         qdate = QtCore.QDate.fromString(noticia[constants.FECHA], "dd/MM/yyyy")
         self.de_fecha.setDate(qdate)
         self.de_fecha.show()
@@ -289,12 +305,11 @@ class Ui_main_view(object):
         self.txt_titulo.setText(noticia[constants.TITULO])
         self.txt_cuerpo.setText(noticia[constants.CUERPO])
 
-        #print(noticia[constants.ID_NOTICIA])
-        #print(noticia[constants.FECHA])
-        #print(noticia[constants.MEDIO])
-        #print(noticia[constants.SECCION])
-        #print(noticia[constants.TITULO])
-        #print(noticia[constants.CUERPO])
+    def delete_data(self):
+        """
+        elimina un registro
+        """
+        self.controller.delete_data(self.nota_id)
 
     def save_data(self):
         """
@@ -326,6 +341,9 @@ class Ui_main_view(object):
         """
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.controller.create_db()
+        self.clear_data()
+        self.clear_grid()
+        self.clear_combos()
         QApplication.restoreOverrideCursor()
 
     def create_tables(self):
@@ -334,7 +352,21 @@ class Ui_main_view(object):
         """
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.controller.create_tables()
+        self.load_medios()
         QApplication.restoreOverrideCursor()
+
+    def clear_grid(self):
+        """
+        vacía la grilla
+        """
+        self.tw_noticias.setRowCount(0)
+
+    def clear_combos(self):
+        """
+        vacía la combos
+        """
+        self.cmb_medios.clear()
+        self.cmb_secciones.clear()
 
     def clear_data(self):
         """
@@ -352,47 +384,63 @@ class Ui_main_view(object):
         """
         botón refresh evento click
         """
-        #'Id', 'Fecha', 'Medio', 'Sección', 'Título', 'Cuerpo'
-        noticias = self.controller.get_noticias()
-        row = 0
-        self.tw_noticias.setRowCount(len(noticias))
+        try:
+            #'Id', 'Fecha', 'Medio', 'Sección', 'Título', 'Cuerpo'
+            noticias = self.controller.get_noticias()
+            row = 0
+            self.tw_noticias.setRowCount(len(noticias))
 
-        cols = 6
-        for n in noticias:
-            for col in range(0, cols):
-                #print(row, col, n[col])
-                item = QtWidgets.QTableWidgetItem(n[col])
-                if(col < 2):
-                    item.setTextAlignment(QtCore.Qt.AlignRight)
+            cols = 6
+            for n in noticias:
+                for col in range(0, cols):
+                    #print(row, col, n[col])
+                    item = QtWidgets.QTableWidgetItem(n[col])
+                    if(col < 2):
+                        item.setTextAlignment(QtCore.Qt.AlignRight) # esto no funciona
 
-                self.tw_noticias.setItem(row, col, QtWidgets.QTableWidgetItem(n[col]))
-            row += 1
+                    self.tw_noticias.setItem(row, col, QtWidgets.QTableWidgetItem(n[col]))
+                row += 1
+        except:
+            pass
 
     def load_medios(self):
         """
         carga el combo de medios
         """
-        data = self.controller.get_medios()
-        for d in data:
-            self.cmb_medios.addItem(f"{d[1]} - ({d[0]})")
+        try:
+            data = self.controller.get_medios()
+            for d in data:
+                self.cmb_medios.addItem(f"{d[1]} - ({d[0]})")
+        except:
+            pass
 
     def load_secciones(self):
         """
         carga el combo de secciones
         según el medio elegido
         """
-        self.cmb_secciones.clear()
+        try:
+            self.cmb_secciones.clear()
 
-        medio = self.cmb_medios.currentText()
-        inicio = medio.find('- (') + 3
-        fin = medio.find(')')
+            medio = self.cmb_medios.currentText()
+            inicio = medio.find('- (') + 3
+            fin = medio.find(')')
 
-        id_medio = int(medio[inicio : fin : 1])
+            id_medio = int(medio[inicio : fin : 1])
 
-        data = self.controller.get_secciones(id_medio)
+            data = self.controller.get_secciones(id_medio)
 
-        for d in data:
-            self.cmb_secciones.addItem(f"{d[1]} - ({d[0]})")
+            for d in data:
+                self.cmb_secciones.addItem(f"{d[1]} - ({d[0]})")
+        except:
+            pass
+
+    def buscar(self):
+        """
+        busca según id
+        """
+        search_id = self.txt_id_search.text()
+        self.controller.get_noticia(search_id)
 
     def about(self):
         """

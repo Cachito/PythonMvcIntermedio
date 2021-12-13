@@ -30,7 +30,7 @@ class Controller:
 
         except Exception as e:
             self.view.salta_violeta("Error Carro-Maier", str(e))
-            
+
     def get_noticias(self):
         """
         devuelve todas las noticias
@@ -114,7 +114,7 @@ class Controller:
         actualiza la vista
         limpa los campos
         """
-        if not search_id:
+        if not search_id or search_id == 0:
             self.view.salta_violeta("Carro-Maier", "Debe seleccionar algo")
             return
 
